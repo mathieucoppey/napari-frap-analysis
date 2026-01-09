@@ -1,0 +1,11 @@
+name: napari-frap-analysis
+display_name: FRAP Analysis
+contributions:
+  commands:
+    - id: napari-frap-analysis.make_widget
+      python_name: napari_frap_analysis._widget:FrapWidget
+      title: Make FRAP Analysis Widget
+  widgets:
+    - command: napari-frap-analysis.make_widget
+      display_name: FRAP Analysis
+      autogenerate: false
