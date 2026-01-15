@@ -69,7 +69,9 @@ If the cell moves during the movie, the FRAP ROI needs to follow it.
 -   *Note*: You can uncheck this to restore the original manual ROI.
 
 ### 4. Analysis & Fitting
--   **Parameters**: Set the **Time Interval** (sec/frame) and **Bleach Frame** index.
+-   **Parameters**: 
+    -   Set the **Time Interval** (sec/frame) and **Bleach Frame** index.
+    -   **Two time scales**: Check this if the imaging interval changes during the movie. Specify the **Change frame** (where the interval switch occurs) and the **Second Interval** (the new frame rate after that point).
 -   **Fitting**:
     -   Choose Model: `1 Diffusive Population` or `2 Diffusive Populations`.
     -   Check `Immobile Fraction` to include it in the fit.
