@@ -94,6 +94,30 @@ class FrapWidget(QWidget):
         self.spin_bleach.valueChanged.connect(self._on_param_change)
         param_layout.addRow("Bleach Frame Index:", self.spin_bleach)
         
+        self.check_two_scales = QCheckBox("Two time scales")
+        self.check_two_scales.toggled.connect(self._update_model_ui)
+        param_layout.addRow(self.check_two_scales)
+        
+        self.wdg_second_scale = QWidget()
+        second_scale_layout = QFormLayout()
+        second_scale_layout.setContentsMargins(0, 0, 0, 0)
+        
+        self.spin_change_frame = QSpinBox()
+        self.spin_change_frame.setRange(1, 10000)
+        self.spin_change_frame.setValue(61)
+        self.spin_change_frame.valueChanged.connect(self._on_param_change)
+        second_scale_layout.addRow("Change frame:", self.spin_change_frame)
+        
+        self.spin_time_2 = QDoubleSpinBox()
+        self.spin_time_2.setValue(5.0)
+        self.spin_time_2.setSingleStep(0.1)
+        self.spin_time_2.setMinimum(0.001)
+        self.spin_time_2.valueChanged.connect(self._on_param_change)
+        second_scale_layout.addRow("Second Interval (s):", self.spin_time_2)
+        
+        self.wdg_second_scale.setLayout(second_scale_layout)
+        param_layout.addRow(self.wdg_second_scale)
+        
         param_group.setLayout(param_layout)
         layout.addWidget(param_group)
         
@@ -468,6 +492,8 @@ class FrapWidget(QWidget):
         self.wdg_p1.setVisible(is_2_comp)
         self.lbl_t2.setVisible(is_2_comp)
         self.wdg_t2.setVisible(is_2_comp)
+        
+        self.wdg_second_scale.setVisible(self.check_two_scales.isChecked())
         
         self._update_live_plot()
 
@@ -862,7 +888,22 @@ class FrapWidget(QWidget):
                 i_norm = i_shifted / pre_val
                 
         i_norm = np.nan_to_num(i_norm)
-        timestamps = np.arange(len(i_norm)) * self.time_interval
+        
+        # Calculate time axis
+        n_frames = len(i_norm)
+        if self.check_two_scales.isChecked():
+            change_idx = self.spin_change_frame.value() - 1
+            dt1 = self.spin_time.value()
+            dt2 = self.spin_time_2.value()
+            
+            timestamps = np.zeros(n_frames)
+            for i in range(1, n_frames):
+                if i < change_idx:
+                    timestamps[i] = timestamps[i-1] + dt1
+                else:
+                    timestamps[i] = timestamps[i-1] + dt2
+        else:
+            timestamps = np.arange(n_frames) * self.time_interval
         
         self.time_axis = timestamps
         self.norm_curve = i_norm
@@ -875,7 +916,10 @@ class FrapWidget(QWidget):
         
         if t is not None:
             self.ax_main.plot(t, y, label="Data", color='blue')
-            bleach_t = self.bleach_frame * self.time_interval
+            if self.bleach_frame < len(t):
+                bleach_t = t[self.bleach_frame]
+            else:
+                bleach_t = self.bleach_frame * self.time_interval
             self.ax_main.axvline(bleach_t, color='gray', linestyle='--')
             self.ax_main.axhline(1.0, color='black', linestyle=':', label="Ref (1.0)")
             
